@@ -1,0 +1,43 @@
+--new item window
+local function newTerminal()
+    if hs.application.find('iTerm') == nil then
+        hs.application.launchOrFocus('iTerm')
+    else
+        hs.applescript.applescript([[
+            tell application "iTerm"
+                create window with default profile
+            end tell
+        ]])
+    end
+end
+
+hs.hotkey.bind({'cmd', 'shift'}, 'n', newTerminal)
+
+function reloadConfig(files)
+    doReload = false
+    for _,file in pairs(files) do
+        if file:sub(-4) == ".lua" then
+            doReload = true
+        end
+    end
+    if doReload then
+        hs.reload()
+    end
+end
+
+-- Define a function to close iTerm window
+local function closeCurrentITermWindow()
+    local iterm = hs.appfinder.appFromName("iTerm")
+    if iterm then
+        local mainWindow = iterm:mainWindow()
+        if mainWindow then
+            mainWindow:close()
+        end
+    end
+end
+
+-- Bind the function to the "Control + qq" key combination
+hs.hotkey.bind({'ctrl'}, 'q', closeCurrentITermWindow)
+
+myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
+hs.alert.show("Config loaded")
